@@ -1,9 +1,8 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       0.3
+// @version       0.4
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
-// @include       http://blank.org/*
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
 // @match         http://external2.shopee.tw/ext/familymart/OrdersPrint/OrdersPrint.aspx
 // @require       https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js
@@ -17,13 +16,13 @@
 const seven11 = {
   pagebreak: { mode: 'avoid-all' },
   margin: [6, 6],
-  html2canvas: { scale: 5 },
+  html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const fami = {
   pagebreak: { mode: 'avoid-all' },
   margin: [8, 3],
-  html2canvas: { scale: 5 },
+  html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 
@@ -40,8 +39,8 @@ function printDocument(element) {
 function cssElement(url) {
   var link = document.createElement("link");
   link.href = url;
-  link.rel="stylesheet";
-  link.type="text/css";
+  link.rel = "stylesheet";
+  link.type = "text/css";
   return link;
 }
 
@@ -72,14 +71,29 @@ function cssElement(url) {
       })
       document.body.removeChild(document.querySelector('form'))
     }
-    if (debug) {
-      html2pdf().set(setting).from((setting == seven11) ? document.querySelector("table").innerHTML : document.body.innerHTML).save()
-    } else html2pdf().set(setting).from((setting == seven11) ? document.querySelector("table").innerHTML : document.body.innerHTML).outputPdf('dataurlstring').then((s) => {
-      printJS({
+    let pdf = html2pdf().set(setting).from((setting == seven11) ? document.querySelector("table").innerHTML : document.body.innerHTML)
+    var modalHtml = `
+    <!-- Modal -->
+    <div class="modal fade" id="sel" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-body align-self-center">
+          <button id="print" type="button" class="btn btn-success">🖨️列印</button>
+          <button id="download" type="button" class="btn btn-primary">📥下載</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    `
+    pdf.outputPdf('dataurlstring').then(s => {
+      $("body").prepend(modalHtml);
+      $('#sel').modal('show')
+      $('button#download').click(() => pdf.save())
+      $('button#print').click(() => printJS({
         printable: s.split(',')[1],
         type: 'pdf',
         base64: true
-      })
+      }))
     })
   }
 })();
