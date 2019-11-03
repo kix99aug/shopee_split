@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         蝦皮出貨單分割
-// @version      0.1
+// @version      0.2
 // @description  將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author       Kix
 // @match        https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
 // @match        http://external2.shopee.tw/ext/familymart/OrdersPrint/OrdersPrint.aspx
 // @require      https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js
 // @require      https://printjs-4de6.kxcdn.com/print.min.js
+// @require      https://code.jquery.com/jquery-3.3.1.slim.min.js
+// @require      https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js
+// @resource     https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css
 // @grant        none
 // ==/UserScript==
 
