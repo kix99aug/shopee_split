@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       0.5
+// @version       1.0
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
@@ -15,13 +15,13 @@
 
 const seven11 = {
   pagebreak: { mode: 'avoid-all' },
-  // margin: [6, 6],
+  margin: [6, 6],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const fami = {
   pagebreak: { mode: 'avoid-all' },
-  // margin: [8, 3],
+  margin: [8, 3],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
@@ -46,7 +46,6 @@ function cssElement(url) {
 
 (function () {
   'use strict';
-  document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
   window.onload = () => {
     let setting = (window.location.href == "https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx") ? seven11 : fami
     if (setting == fami) {
@@ -62,16 +61,31 @@ function cssElement(url) {
         canvas2.height = ele.height
         ctx1.drawImage(ele, 0, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
         ctx2.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
+        var c = ctx2.getImageData(1, 1, 1, 1).data;
         let img = document.createElement('img')
         img.src = canvas1.toDataURL()
         document.body.appendChild(img)
+        if (c[0] != 255) {
         img = document.createElement('img')
         img.src = canvas2.toDataURL()
         document.body.appendChild(img)
+        }
       })
       document.body.removeChild(document.querySelector('form'))
+    } else {
+        var table = document.createElement('table')
+        var HTML = ""
+        document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele=>{
+            ele.style = ""
+            HTML += '<tr>' + ele.outerHTML + '</tr>'
+        })
+        table.innerHTML = HTML
+        table.cellpadding = 0
+        table.cellspacing = 0
+        document.body.innerHTML = ""
+        document.body.appendChild(table)
     }
-    let pdf = html2pdf().set(setting).from((setting == seven11) ? document.querySelector("table").innerHTML : document.body.innerHTML)
+    let pdf = html2pdf().set(setting).from((setting == seven11) ? table : document.body.innerHTML)
     var modalHtml = `
     <!-- Modal -->
     <div class="modal fade" id="sel" tabindex="-1" role="dialog">
@@ -86,6 +100,7 @@ function cssElement(url) {
     </div>
     `
     pdf.outputPdf('dataurlstring').then(s => {
+  document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
       $("body").prepend(modalHtml);
       $('#sel').modal('show')
       $('button#download').click(() => pdf.save())
