@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.0
+// @version       1.2
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
 // @match         http://external2.shopee.tw/ext/familymart/OrdersPrint/OrdersPrint.aspx
+// @match         https://seller.shopee.tw/api/v2/orders/waybill/*
 // @require       https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js
 // @require       https://printjs-4de6.kxcdn.com/print.min.js
 // @require       https://code.jquery.com/jquery-3.3.1.slim.min.js
@@ -24,6 +25,12 @@ const fami = {
   margin: [8, 3],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
+}
+const express = {
+  pagebreak: { mode: 'avoid-all' },
+  margin: [5.5, 11],
+  html2canvas: { scale: 10 },
+  jsPDF: { unit: 'mm', format: [100, 150], orientation: 'landscape' }
 }
 
 function printDocument(element) {
@@ -46,8 +53,9 @@ function cssElement(url) {
 
 (function () {
   'use strict';
-  window.onload = () => {
-    let setting = (window.location.href == "https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx") ? seven11 : fami
+  $(document).ready(() => {
+    let setting = (window.location.host == "epayment.7-11.com.tw") ? seven11 : (window.location.host == "seller.shopee.tw")? express : fami
+    console.log(setting)
     if (setting == fami) {
       let imgs = document.querySelectorAll('img')
       imgs.forEach(ele => {
@@ -72,7 +80,7 @@ function cssElement(url) {
         }
       })
       document.body.removeChild(document.querySelector('form'))
-    } else {
+    } else if (setting == seven11) {
         var table = document.createElement('table')
         var HTML = ""
         document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele=>{
@@ -84,8 +92,17 @@ function cssElement(url) {
         table.cellspacing = 0
         document.body.innerHTML = ""
         document.body.appendChild(table)
+    } else {
+        document.querySelector(".container").style = "display: table-row"
+        document.querySelector("body > table").remove()
+        document.querySelectorAll('.cut-line').forEach(ele=>{
+            ele.remove()
+        })
+        document.querySelectorAll('.page').forEach(ele=>{
+            ele.style = "border: 0 !important; padding: 0 !important;"
+        })
     }
-    let pdf = html2pdf().set(setting).from((setting == seven11) ? table : document.body.innerHTML)
+    let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
     var modalHtml = `
     <!-- Modal -->
     <div class="modal fade" id="sel" tabindex="-1" role="dialog">
@@ -110,5 +127,5 @@ function cssElement(url) {
         base64: true
       }))
     })
-  }
+  })
 })();
