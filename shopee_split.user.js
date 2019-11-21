@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.6
+// @version       1.7
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
@@ -66,19 +66,19 @@ function cssElement(url) {
         let ctx1 = canvas1.getContext('2d')
         canvas1.width = ele.width / 2
         canvas1.height = ele.height
-        let canvas2 = document.createElement('canvas')
-        let ctx2 = canvas2.getContext('2d')
-        canvas2.width = ele.width / 2
-        canvas2.height = ele.height
         ctx1.drawImage(ele, 0, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
-        ctx2.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
         var c1 = ctx1.getImageData(1, 1, 1, 1).data;
-        var c2 = ctx2.getImageData(1, 1, 1, 1).data;
         if (c1[0] != 255) {
           let img = document.createElement('img')
           img.src = canvas1.toDataURL()
           document.body.appendChild(img)
         }
+        let canvas2 = document.createElement('canvas')
+        let ctx2 = canvas2.getContext('2d')
+        canvas2.width = ele.width / 2
+        canvas2.height = ele.height
+        ctx2.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
+        var c2 = ctx2.getImageData(1, 1, 1, 1).data;
         if (c2[0] != 255) {
           let img = document.createElement('img')
           img.src = canvas2.toDataURL()
