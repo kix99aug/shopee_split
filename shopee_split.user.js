@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.5
+// @version       1.6
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
@@ -16,18 +16,21 @@
 
 const seven11 = {
   pagebreak: { mode: 'avoid-all' },
+  filename: null,
   margin: [6, 6],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const fami = {
   pagebreak: { mode: 'css', after: 'img' },
+  filename: null,
   margin: [8, 3],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const express = {
   pagebreak: { mode: 'css', after: '.page-breaker' },
+  filename: null,
   margin: [5.5, 11],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'landscape' }
@@ -108,6 +111,7 @@ function cssElement(url) {
         ele.style = "color : black !important;"
       })
     }
+    setting.filename = new Date().toLocaleString()
     let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
     var modalHtml = `
     <!-- Modal -->
