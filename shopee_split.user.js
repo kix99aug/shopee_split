@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.4
+// @version       1.5
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
@@ -21,13 +21,13 @@ const seven11 = {
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const fami = {
-  pagebreak: { mode:'css' , after: 'img' },
+  pagebreak: { mode: 'css', after: 'img' },
   margin: [8, 3],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const express = {
-  pagebreak: { mode:'css' , after: '.page-breaker' },
+  pagebreak: { mode: 'css', after: '.page-breaker' },
   margin: [5.5, 11],
   html2canvas: { scale: 10 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'landscape' }
@@ -54,7 +54,7 @@ function cssElement(url) {
 (function () {
   'use strict';
   $(document).ready(() => {
-    let setting = (window.location.host == "epayment.7-11.com.tw") ? seven11 : (window.location.host == "seller.shopee.tw")? express : fami
+    let setting = (window.location.host == "epayment.7-11.com.tw") ? seven11 : (window.location.host == "seller.shopee.tw") ? express : fami
     console.log(setting)
     if (setting == fami) {
       let imgs = document.querySelectorAll('img')
@@ -69,41 +69,44 @@ function cssElement(url) {
         canvas2.height = ele.height
         ctx1.drawImage(ele, 0, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
         ctx2.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
-        var c = ctx2.getImageData(1, 1, 1, 1).data;
-        let img = document.createElement('img')
-        img.src = canvas1.toDataURL()
-        document.body.appendChild(img)
-        if (c[0] != 255) {
-        img = document.createElement('img')
-        img.src = canvas2.toDataURL()
-        document.body.appendChild(img)
+        var c1 = ctx1.getImageData(1, 1, 1, 1).data;
+        var c2 = ctx2.getImageData(1, 1, 1, 1).data;
+        if (c1[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas1.toDataURL()
+          document.body.appendChild(img)
+        }
+        if (c2[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas2.toDataURL()
+          document.body.appendChild(img)
         }
       })
       document.body.removeChild(document.querySelector('form'))
     } else if (setting == seven11) {
-        var table = document.createElement('table')
-        var HTML = ""
-        document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele=>{
-            ele.style = ""
-            HTML += '<tr>' + ele.outerHTML + '</tr>'
-        })
-        table.innerHTML = HTML
-        table.cellpadding = 0
-        table.cellspacing = 0
-        document.body.innerHTML = ""
-        document.body.appendChild(table)
+      var table = document.createElement('table')
+      var HTML = ""
+      document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele => {
+        ele.style = ""
+        HTML += '<tr>' + ele.outerHTML + '</tr>'
+      })
+      table.innerHTML = HTML
+      table.cellpadding = 0
+      table.cellspacing = 0
+      document.body.innerHTML = ""
+      document.body.appendChild(table)
     } else {
-        document.querySelector(".container").style = "display: table-row"
-        document.querySelector("body > table").remove()
-        document.querySelectorAll('.cut-line').forEach(ele=>{
-            ele.remove()
-        })
-        document.querySelectorAll('.page').forEach(ele=>{
-            ele.style = "border: 0 !important; padding: 0 !important;"
-        })
-        document.querySelectorAll('.address-label__title').forEach(ele=>{
-            ele.style = "color : black !important;"
-        })
+      document.querySelector(".container").style = "display: table-row"
+      document.querySelector("body > table").remove()
+      document.querySelectorAll('.cut-line').forEach(ele => {
+        ele.remove()
+      })
+      document.querySelectorAll('.page').forEach(ele => {
+        ele.style = "border: 0 !important; padding: 0 !important;"
+      })
+      document.querySelectorAll('.address-label__title').forEach(ele => {
+        ele.style = "color : black !important;"
+      })
     }
     let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
     var modalHtml = `
@@ -120,7 +123,7 @@ function cssElement(url) {
     </div>
     `
     pdf.outputPdf('dataurlstring').then(s => {
-  document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
+      document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
       $("body").prepend(modalHtml);
       $('#sel').modal('show')
       $('button#download').click(() => pdf.save())
