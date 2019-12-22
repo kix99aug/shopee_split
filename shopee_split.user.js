@@ -22,10 +22,10 @@ const seven11 = {
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const fami = {
-  pagebreak: { mode: 'css', after: 'img' },
+  pagebreak: { mode: 'css', after: 'br' },
   filename: null,
-  margin: [8, 3],
-  html2canvas: { scale: 10 },
+  margin: [2,5],
+  html2canvas: { scale: 5 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
 const express = {
@@ -56,86 +56,118 @@ function cssElement(url) {
 
 (function () {
   'use strict';
-  $(document).ready(() => {
-    let setting = (window.location.host == "epayment.7-11.com.tw") ? seven11 : (window.location.host == "seller.shopee.tw") ? express : fami
-    console.log(setting)
-    if (setting == fami) {
-      let imgs = document.querySelectorAll('img')
-      imgs.forEach(ele => {
-        let canvas1 = document.createElement('canvas')
-        let ctx1 = canvas1.getContext('2d')
-        canvas1.width = ele.width / 2
-        canvas1.height = ele.height
-        ctx1.drawImage(ele, 0, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
-        var c1 = ctx1.getImageData(1, 1, 1, 1).data;
-        if (c1[0] != 255) {
-          let img = document.createElement('img')
-          img.src = canvas1.toDataURL()
-          document.body.appendChild(img)
-        }
-        let canvas2 = document.createElement('canvas')
-        let ctx2 = canvas2.getContext('2d')
-        canvas2.width = ele.width / 2
-        canvas2.height = ele.height
-        ctx2.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height, 0, 0, ele.width / 2, ele.height)
-        var c2 = ctx2.getImageData(1, 1, 1, 1).data;
-        if (c2[0] != 255) {
-          let img = document.createElement('img')
-          img.src = canvas2.toDataURL()
-          document.body.appendChild(img)
-        }
-      })
-      document.body.removeChild(document.querySelector('form'))
-    } else if (setting == seven11) {
-      var table = document.createElement('table')
-      var HTML = ""
-      document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele => {
+  console.log('start')
+  let imglength = Number.MAX_VALUE
+  let setting = (window.location.host == "epayment.7-11.com.tw") ? seven11 : (window.location.host == "seller.shopee.tw") ? express : fami
+  if (setting == fami) {
+    let imgs = document.querySelectorAll('img')
+    imglength = imgs.length * 4
+    imgs.forEach(ele => {
+      $(ele).on('load', () => {
         ele.style = ""
-        HTML += '<tr>' + ele.outerHTML + '</tr>'
+        let canvas = document.createElement('canvas')
+        let ctx = canvas.getContext('2d')
+        canvas.width = ele.width / 2
+        canvas.height = ele.height / 2
+        ctx.drawImage(ele, 0, 0, ele.width / 2, ele.height / 2, 0, 0, ele.width / 2, ele.height / 2)
+        let c = ctx.getImageData(300, 1220, 1, 1).data;
+        imglength--
+        if (c[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas.toDataURL()
+          document.body.appendChild(img)
+          img.after(document.createElement('br'))
+        }
+        ctx.drawImage(ele, ele.width / 2, 0, ele.width / 2, ele.height / 2, 0, 0, ele.width / 2, ele.height / 2)
+        c = ctx.getImageData(300, 1220, 1, 1).data;
+        imglength--
+        if (c[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas.toDataURL()
+          document.body.appendChild(img)
+          img.after(document.createElement('br'))
+        }
+        ctx.drawImage(ele, 0, ele.height / 2, ele.width / 2, ele.height / 2, 0, 0, ele.width / 2, ele.height / 2)
+        c = ctx.getImageData(300, 1220, 1, 1).data;
+        imglength--
+        if (c[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas.toDataURL()
+          document.body.appendChild(img)
+          img.after(document.createElement('br'))
+        }
+        ctx.drawImage(ele, ele.width / 2, ele.height / 2, ele.width / 2, ele.height / 2, 0, 0, ele.width / 2, ele.height / 2)
+        c = ctx.getImageData(300, 1220, 1, 1).data;
+        imglength--
+        if (c[0] != 255) {
+          let img = document.createElement('img')
+          img.src = canvas.toDataURL()
+          document.body.appendChild(img)
+          img.after(document.createElement('br'))
+        }
       })
-      table.innerHTML = HTML
-      table.cellpadding = 0
-      table.cellspacing = 0
-      document.body.innerHTML = ""
-      document.body.appendChild(table)
-    } else {
-      document.querySelector(".container").style = "display: table-row"
-      document.querySelector("body > table").remove()
-      document.querySelectorAll('.cut-line').forEach(ele => {
-        ele.remove()
-      })
-      document.querySelectorAll('.page').forEach(ele => {
-        ele.style = "border: 0 !important; padding: 0 !important;"
-      })
-      document.querySelectorAll('.address-label__title').forEach(ele => {
-        ele.style = "color : black !important;"
-      })
-    }
-    setting.filename = new Date().toLocaleString()
-    let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
-    var modalHtml = `
-    <!-- Modal -->
-    <div class="modal fade" id="sel" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-body align-self-center">
-          <button id="print" type="button" class="btn btn-success">🖨️列印</button>
-          <button id="download" type="button" class="btn btn-primary">📥下載</button>
+    })
+  } else if (setting == seven11) {
+    var table = document.createElement('table')
+    var HTML = ""
+    document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele => {
+      ele.style = ""
+      HTML += '<tr>' + ele.outerHTML + '</tr>'
+    })
+    table.innerHTML = HTML
+    table.cellpadding = 0
+    table.cellspacing = 0
+    document.body.innerHTML = ""
+    document.body.appendChild(table)
+    imglength = 0
+  } else {
+    document.querySelector(".container").style = "display: table-row"
+    document.querySelector("body > table").remove()
+    document.querySelectorAll('.cut-line').forEach(ele => {
+      ele.remove()
+    })
+    document.querySelectorAll('.page').forEach(ele => {
+      ele.style = "border: 0 !important; padding: 0 !important;"
+    })
+    document.querySelectorAll('.address-label__title').forEach(ele => {
+      ele.style = "color : black !important;"
+    })
+    imglength = 0
+  }
+  setting.filename = new Date().toLocaleString()
+  let printed = false
+  setInterval(() => {
+    if (!printed && imglength == 0) {
+      let css = document.createElement('style')
+      css.innerHTML = "img{max-height:14.5cm;}"
+      document.body.appendChild(css)
+      document.querySelector('form').remove()
+      let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
+      var modalHtml = `
+        <!-- Modal -->
+        <div class="modal fade" id="sel" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-body align-self-center">
+              <button id="print" type="button" class="btn btn-success">🖨️列印</button>
+              <button id="download" type="button" class="btn btn-primary">📥下載</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    `
-    pdf.outputPdf('dataurlstring').then(s => {
-      document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
-      $("body").prepend(modalHtml);
-      $('#sel').modal('show')
-      $('button#download').click(() => pdf.save())
-      $('button#print').click(() => printJS({
-        printable: s.split(',')[1],
-        type: 'pdf',
-        base64: true
-      }))
-    })
-  })
+        `
+      pdf.outputPdf('dataurlstring').then(s => {
+        document.head.appendChild(cssElement(GM_getResourceURL("bootstrapCSS")));
+        $("body").prepend(modalHtml);
+        $('#sel').modal('show')
+        $('button#download').click(() => pdf.save())
+        $('button#print').click(() => printJS({
+          printable: s.split(',')[1],
+          type: 'pdf',
+          base64: true
+        }))
+      })
+      printed = true
+    }
+  }, 1000)
 })();
