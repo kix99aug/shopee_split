@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.8
+// @version       1.9
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
@@ -138,10 +138,11 @@ function cssElement(url) {
   let printed = false
   setInterval(() => {
     if (!printed && imglength == 0) {
+        if (setting == fami) {
       let css = document.createElement('style')
       css.innerHTML = "img{max-height:14.5cm;}"
       document.body.appendChild(css)
-      document.querySelector('form').remove()
+      document.querySelector('form').remove()}
       let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
       var modalHtml = `
         <!-- Modal -->
