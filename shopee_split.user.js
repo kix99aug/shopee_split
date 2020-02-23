@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.8
+// @version       1.12
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
+// @match         https://epayment.7-11.com.tw/C2C/C2CWeb/PrintC2CPinCode.aspx
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
-// @match         http://external2.shopee.tw/ext/familymart/OrdersPrint/OrdersPrint.aspx
+// @match         http://external2.shopee.tw/ext/familymart/*
 // @match         https://seller.shopee.tw/api/v2/orders/waybill/*
 // @require       https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js
 // @require       https://printjs-4de6.kxcdn.com/print.min.js
@@ -24,7 +25,7 @@ const seven11 = {
 const fami = {
   pagebreak: { mode: 'css', after: 'br' },
   filename: null,
-  margin: [2,5],
+  margin: [2, 5],
   html2canvas: { scale: 5 },
   jsPDF: { unit: 'mm', format: [100, 150], orientation: 'portrait' }
 }
@@ -106,19 +107,27 @@ function cssElement(url) {
           img.after(document.createElement('br'))
         }
       })
+      if (ele.complete) $(ele).trigger('load')
     })
   } else if (setting == seven11) {
-    var table = document.createElement('table')
-    var HTML = ""
-    document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele => {
-      ele.style = ""
-      HTML += '<tr>' + ele.outerHTML + '</tr>'
-    })
-    table.innerHTML = HTML
-    table.cellpadding = 0
-    table.cellspacing = 0
-    document.body.innerHTML = ""
-    document.body.appendChild(table)
+    var table
+    if (window.location.pathname == "/C2C/C2CWeb/PrintC2CPinCode.aspx") {
+      table = document.querySelector("table")
+    }
+    else {
+      table = document.createElement('table')
+      var HTML = ""
+      document.querySelectorAll("#Panel1 > table > tbody > tr > td").forEach(ele => {
+        ele.style = ""
+        HTML += '<tr>' + ele.outerHTML + '</tr>'
+      })
+      table.innerHTML = HTML
+      table.cellpadding = 0
+      table.cellspacing = 0
+      document.body.innerHTML = ""
+      document.body.appendChild(table)
+    }
+
     imglength = 0
   } else {
     document.querySelector(".container").style = "display: table-row"
@@ -136,12 +145,15 @@ function cssElement(url) {
   }
   setting.filename = new Date().toLocaleString()
   let printed = false
-  setInterval(() => {
+  let intfun = setInterval(() => {
+    console.log(imglength)
     if (!printed && imglength == 0) {
-      let css = document.createElement('style')
-      css.innerHTML = "img{max-height:14.5cm;}"
-      document.body.appendChild(css)
-      document.querySelector('form').remove()
+      if (setting == fami) {
+        let css = document.createElement('style')
+        css.innerHTML = "img{max-height:14.5cm;}"
+        document.body.appendChild(css)
+        document.querySelector('form').remove()
+      }
       let pdf = html2pdf().set(setting).from((setting == seven11) ? table : (setting == express) ? document.body.innerHTML : document.body.innerHTML)
       var modalHtml = `
         <!-- Modal -->
@@ -168,6 +180,7 @@ function cssElement(url) {
         }))
       })
       printed = true
+      clearInterval(intfun)
     }
   }, 1000)
 })();
