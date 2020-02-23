@@ -15,6 +15,7 @@
 // @grant         GM_getResourceURL
 // ==/UserScript==
 
+
 const seven11 = {
   pagebreak: { mode: 'avoid-all' },
   filename: null,
