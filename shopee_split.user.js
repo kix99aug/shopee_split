@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       1.15
+// @version       1.15.1
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/PrintC2CPinCode.aspx
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/MultiplePrintC2CPinCode.aspx
 // @match         http://external2.shopee.tw/ext/familymart/*
 // @match         https://seller.shopee.tw/api/v2/orders/waybill/*
+// @require       https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/pdfmake.min.js
 // @require       http://html2canvas.hertzen.com/dist/html2canvas.min.js
+// @grant         unsafeWindow
 // ==/UserScript==
 
 (() => {
@@ -18,9 +20,14 @@
   let goal = -1,data
   switch (host) {
     case "7-11":
+      document.head.innerHTML += "<style>img{max-width: 4.5cm;}</style>"
       data = document.querySelectorAll('.div_frame')
       goal = data.length
       data.forEach(ele => {
+        //if(ele.innerText.search("無法列印服務單")>0){
+        //    goal--
+        //    return
+        //}
         html2canvas(ele, { scale: 5 }).then(canvas => {
           frameBody += `<img src="${canvas.toDataURL()}">`
           goal--
