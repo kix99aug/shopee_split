@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       2.0
+// @version       2.1
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/PrintC2CPinCode.aspx
@@ -44,24 +44,27 @@
       data = document.querySelectorAll('img')
       goal = data.length * 4
       data.forEach(ele => {
-        ele.onload = function () {
+        let int = window.setInterval(()=>{
+          if(!ele.complete) return
+          window.clearInterval(int)
           let canvas = document.createElement('canvas')
           let ctx = canvas.getContext('2d')
-          canvas.width = this.naturalWidth / 2
-          canvas.height = this.naturalHeight / 2
+          canvas.width = ele.naturalWidth / 2
+          canvas.height = ele.naturalHeight / 2
           for (let x = 0; x <= canvas.width; x += canvas.width) {
-            for (let y = 0; y <= canvas.height; y += canvas.height, goal--) {
-              ctx.drawImage(this, x + 10, y + 10, canvas.width - 20, canvas.height - 20, 0, 0, canvas.width, canvas.height)
+            for (let y = 0; y <= canvas.height; y += canvas.height,goal--) {
+              ctx.drawImage(ele, x + 10, y + 10, canvas.width - 20, canvas.height - 20, 0, 0, canvas.width, canvas.height)
               let c = ctx.getImageData(300, 1220, 1, 1).data;
-              if (c[0] != 255) dd.content.push({
-                image: canvas.toDataURL(),
-                height: 425,
-                width: 283
-              })
+              if (c[0] != 255) {
+                dd.content.push({
+                  image: canvas.toDataURL(),
+                  height: 425,
+                  width: 283
+                })
+              }
             }
           }
-        }
-        if (ele.complete) ele.onload()
+        },500)
       })
       break
   }
