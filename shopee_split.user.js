@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          蝦皮出貨單分割
-// @version       2.4
+// @version       2.4.1
 // @description   將蝦皮批量輸出的出貨單轉為條碼機能列印的格式
 // @author        Kix
 // @match         https://epayment.7-11.com.tw/C2C/C2CWeb/PrintC2CPinCode.aspx
@@ -72,9 +72,9 @@
 
   let interval = window.setInterval(() => {
     if (goal != 0) return
-    pdfMake.createPdf(dd, {}, {}, {}).getBlob(blob => {
+    pdfMake.createPdf(dd, {}, {}, {}).getDataUrl(url => {
       document.head.innerHTML += "<style>.hide{display:none;animation-name:out;animation-duration:.5s}.modal{display:none;align-items:center;justify-content:center;position:fixed;z-index:1;left:0;top:0;width:100%;height:100%;background-color:#000;background-color:rgba(0,0,0,.4);animation-name:ani;animation-duration:.5s}.modal.hide{display:flex!important}.modal-content{background-color:#fefefe;padding:20px;border:1px solid #888;width:90vw;height:90vh}.modal-content iframe{width:100%;height:100%}@keyframes ani{from{opacity:0}to{opacity:1}}</style>"
-      document.body.innerHTML += `<div class="modal"><div class="modal-content"><iframe id="pdf" src="${URL.createObjectURL(blob)}"></iframe></div></div>`
+      document.body.innerHTML += `<div class="modal"><div class="modal-content"><iframe id="pdf" src="${url}"></iframe></div></div>`
       Array.from(document.body.children).forEach(ele => ele.classList.add("hide"))
       document.querySelector(".modal").onclick = () => Array.from(document.body.children).forEach(ele => ele.classList.remove("hide"))
     })
